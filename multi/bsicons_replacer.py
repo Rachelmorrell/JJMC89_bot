@@ -556,7 +556,7 @@ def main(*args):
         pages = pages.union(page.globalusage())
     if pages:
         options['bsicons_map'] = bsicons_map
-        gen = (page for page in pages if page.namespace.id() not in (2, 3))
+        gen = (page for page in pages if page.namespace().id not in (2, 3))
         gen = pagegenerators.PreloadingGenerator(gen)
         bot = BSiconsReplacer(gen, **options)
         bot.run()
