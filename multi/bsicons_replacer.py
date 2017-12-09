@@ -376,14 +376,12 @@ class BSiconsReplacer(MultipleSitesBot, FollowRedirectPageBot,
                                      str(param.name).strip()):
                         continue
                     param_value = str(param.value)
-                    matches = ROUTEMAP_BSICON.findall(param_value)
-                    if not matches:
-                        continue
-                    for match in matches:
-                        current_icon = standardize_bsicon_name(
-                            HTML_COMMENT.sub('', match[1]).strip())
+                    for match in ROUTEMAP_BSICON.findall(param_value):
+                        current_icon = HTML_COMMENT.sub('', match[1]).strip()
+                        current_icon_std = standardize_bsicon_name(
+                            current_icon)
                         new_icon = self.getOption('bsicons_map').get(
-                            current_icon, None)
+                            current_icon_std, None)
                         if not new_icon:
                             continue
                         param_value = param_value.replace(
@@ -391,7 +389,7 @@ class BSiconsReplacer(MultipleSitesBot, FollowRedirectPageBot,
                             match[0] + match[1].replace(current_icon, new_icon)
                             + match[2]
                         )
-                        replacements.add('\u2192'.join([current_icon,
+                        replacements.add('\u2192'.join([current_icon_std,
                                                         new_icon]))
                     param.value = param_value
             elif tpl.name.matches(self.site_config['railway_track_templates']):
