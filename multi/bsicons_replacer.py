@@ -359,16 +359,37 @@ class BSiconsReplacer(MultipleSitesBot, FollowRedirectPageBot,
             if not validate_local_config(self._config[site], site):
                 pywikibot.error('Invalid config for {}.'.format(site))
                 self._config[site] = None
+            file_ns = ''.join(
+                ['[' + c + c.swapcase() + ']' if c.isalpha() else c for c in
+                 '|'.join(site.namespaces.FILE)]
+            )
+            self._config[site]['bsicon_file_regex'] = re.compile(
+                r'(\[\[[_\s]*(?:{ns})[_\s]*:[_\s]*BSicon[_\s]+)([^|]*?)(\.svg'
+                r'[_\s]*(?:\|(?:(?:\[\[.*?\]\])?[^[]*?|\[[^]]*?\])*)?\]\])'
+                .format(ns=file_ns)
+            )
         return self._config[site]
 
     def treat_page(self):
         """Process one page."""
         if not self.site_config or self.site_disabled:
             return
+        replacements = set()
         text, mask = mask_html_tags(self.current_page.text)
+        for match in self.site_config['bsicon_file_regex'].findall(text):
+            current_icon = HTML_COMMENT.sub('', match[1]).strip()
+            current_icon_std = standardize_bsicon_name(current_icon)
+            new_icon = self.getOption('bsicons_map').get(current_icon_std,
+                                                         None)
+            if not new_icon:
+                continue
+            text = text.replace(
+                ''.join(match),
+                match[0] + match[1].replace(current_icon, new_icon) + match[2]
+            )
+            replacements.add('\u2192'.join([current_icon_std, new_icon]))
         text = mask_pipe_mw(text)
         wikicode = mwparserfromhell.parse(text, skip_style_tags=True)
-        replacements = set()
         for tpl in wikicode.ifilter_templates():
             if tpl.name.matches(self.site_config['routemap_templates']):
                 for param in tpl.params:
