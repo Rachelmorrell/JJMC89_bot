@@ -560,6 +560,7 @@ def main(*args):
         gen = pagegenerators.PreloadingGenerator(gen)
         bot = BSiconsReplacer(gen, **options)
         bot.run()
+    return True
 
 
 if __name__ == "__main__":
